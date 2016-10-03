@@ -16,7 +16,7 @@ def get_f2f_prices(card_list, quality):
     for card in card_list:
         card_prices = []
         card_url = f2f_url + urllib.parse.urlencode({f2f_url_arg:card}) # Replaces spaces, commas, etc. in card name
-        print("Searching... " + card_url) 
+        print('Searching... ' + card_url) 
 
         with urllib.request.urlopen(card_url) as response:
             content = response.read()
