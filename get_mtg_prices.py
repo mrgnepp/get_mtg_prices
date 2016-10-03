@@ -2,6 +2,7 @@
 
 import urllib.request
 import urllib.parse
+import argparse
 import re
 
 from bs4 import BeautifulSoup
@@ -56,6 +57,14 @@ def parse_price_from_string(string):
         print('Unable to get price from "%s"' % string)
         return None
 
+def read_in_card_list(filename):
+    card_list = []
+
+    with open(filename, 'r') as file:
+        card_list = file.read()
+
+    return card_list.split('\n')
+
 def export_prices_to_csv(*args):
     filename = 'prices.csv'
     csv_string = ''
@@ -72,11 +81,25 @@ def export_prices_to_csv(*args):
 
     print('Export Complete!')
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+
+    # Required Args
+    parser.add_argument('card_list_file', help='the file containing the list of cards')
+
+    # Optional Args
+    parser.add_argument('-q', '--quality', help='The quality of card to look for. Valid values are "NM", "LP", "MP", and "HP". Default is "NM"', choices=['NM', 'LP', 'MP', 'HP'], default='NM')
+    parser.add_argument('-f', '--foil', help='Use this flag if you\'re looking for foils. Default is to not look for foils', action='store_true')
+
+    return parser.parse_args()
+
 if __name__ == '__main__':
-    card_list = ['Counterspell', 'Kalemne, Disciple of Iroas']
-    quality = ['NM', 'LP', 'MP', 'HP']
-    foil = False
+    args = parse_args()
     
-    f2f_prices = get_f2f_prices(card_list, quality[0])
-    #print(f2f_prices)
+    card_list = read_in_card_list(args.card_list_file)
+    quality = args.quality
+    foil = args.foil
+    
+    f2f_prices = get_f2f_prices(card_list, quality)
+
     export_prices_to_csv(card_list, f2f_prices)
