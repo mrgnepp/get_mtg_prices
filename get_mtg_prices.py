@@ -60,8 +60,11 @@ def parse_price_from_string(string):
 def read_in_card_list(filename):
     card_list = []
 
-    with open(filename, 'r') as file:
-        card_list = file.read()
+    try:
+        with open(filename, 'r') as file:
+            card_list = file.read()
+    except:
+        print('Failed to read list of cards from "%s"' % filename)
 
     return card_list.split('\n')
 
@@ -76,8 +79,11 @@ def export_prices_to_csv(*args):
     for i, card in enumerate(card_list):
         csv_string += card + ',' + str(f2f_prices[0]) + '\n'
 
-    with open(filename, 'w') as file:
-        file.write(csv_string)
+    try:
+        with open(filename, 'w') as file:
+            file.write(csv_string)
+    except:
+        print('Failed to write card prices to "%s"' % filename)
 
     print('Export Complete!')
 
