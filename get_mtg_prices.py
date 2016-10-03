@@ -38,7 +38,7 @@ def get_f2f_prices(card_list, quality):
         if len(card_prices) > 0:
             prices.append(min(card_prices))
         else:
-            prices.append("")
+            prices.append('')
 
     return prices
 
