@@ -22,7 +22,7 @@ def get_f2f_prices(card_list, quality):
             soup = BeautifulSoup(content, 'html.parser')
 
             # DEBUG
-            # with open(local_web_page, 'wb') as file:
+            # with open('content.html', 'wb') as file:
             #     file.write(soup.prettify('utf-8'))
 
             # Search via quality
@@ -53,16 +53,30 @@ def parse_price_from_string(string):
     try:
         return float(string.split()[1])
     except:
+        print('Unable to get price from "%s"' % string)
         return None
 
-def export_prices_to_file():
-    pass
+def export_prices_to_csv(*args):
+    filename = 'prices.csv'
+    csv_string = ''
+    card_list = args[0]
+    f2f_prices = args[1]
+    
+    print('Exporting prices to %s...' % filename)
+
+    for i, card in enumerate(card_list):
+        csv_string += card + ',' + str(f2f_prices[0]) + '\n'
+
+    with open(filename, 'w') as file:
+        file.write(csv_string)
+
+    print('Export Complete!')
 
 if __name__ == '__main__':
-    local_web_page = 'content.html'
     card_list = ['Counterspell', 'Kalemne, Disciple of Iroas']
     quality = ['NM', 'LP', 'MP', 'HP']
     foil = False
     
     f2f_prices = get_f2f_prices(card_list, quality[0])
-    print(f2f_prices)
+    #print(f2f_prices)
+    export_prices_to_csv(card_list, f2f_prices)
