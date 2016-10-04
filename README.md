@@ -2,7 +2,7 @@
 Grabs prices for mtg cards from various sources on the web.
 
 ```bash
-# Uses Python 3.5 and BeautifulSoup4
+# Uses Python 3.5
 pip install -r requirements.txt
 ```
 
