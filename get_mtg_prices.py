@@ -1,11 +1,10 @@
-# Morgan Epp
+#! /usr/bin/python
 
-import urllib.request
-import urllib.parse
 import argparse
 import re
 
 from bs4 import BeautifulSoup
+import requests
 
 def get_f2f_prices(card_list, quality):
     f2f_url = 'http://www.facetofacegames.com/products/search?'
@@ -14,17 +13,16 @@ def get_f2f_prices(card_list, quality):
     prices = []
 
     for card in card_list:
-        card_prices = []
-        card_url = f2f_url + urllib.parse.urlencode({f2f_url_arg:card}) # Replaces spaces, commas, etc. in card name
-        print('Searching... ' + card_url) 
+        card_prices = []    
+        response = requests.get(f2f_url, {f2f_url_arg:card})
 
-        with urllib.request.urlopen(card_url) as response:
-            content = response.read()
-            soup = BeautifulSoup(content, 'html.parser')
+        print('Searching... %s' % response.url) 
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
 
             # DEBUG
-            # with open('content.html', 'wb') as file:
-            #     file.write(soup.prettify('utf-8'))
+            with open('content.html', 'wb') as file:
+                file.write(soup.prettify('utf-8'))
 
             # Search via quality
             elements = soup.find_all('td', {'class':'variantInfo'}, string=f2f_quality[quality])
@@ -33,6 +31,9 @@ def get_f2f_prices(card_list, quality):
                 card_price = parse_price_from_string(element.next_sibling.next_sibling.string)
                 if card_price is not None:
                     card_prices.append(card_price)
+
+        else:
+            print('Returned status code: %s' % response.status_code)
 
         # Append lowest price for card
         if len(card_prices) > 0:
@@ -77,7 +78,8 @@ def export_prices_to_csv(*args):
     print('Exporting prices to %s...' % filename)
 
     for i, card in enumerate(card_list):
-        csv_string += card + ',' + str(f2f_prices[0]) + '\n'
+        # Can't actually use ',' as cards names can have commas
+        csv_string += card + '|' + str(f2f_prices[i]) + '\n'
 
     try:
         with open(filename, 'w') as file:
