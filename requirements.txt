@@ -1,0 +1,2 @@
+get_mtg_prices==1.0
+beautifulsoup4==4.5.1
