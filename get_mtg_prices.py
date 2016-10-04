@@ -34,7 +34,6 @@ def get_f2f_prices(card_list, quality):
                     card_price = parse_price_from_string(card_condition.next_sibling.next_sibling.string)
                     if card_price is not None:
                         card_prices.append(card_price)
-            
         else:
             print('Returned status code: %s' % response.status_code)
 
