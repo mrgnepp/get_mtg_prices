@@ -21,8 +21,8 @@ def get_f2f_prices(card_list, quality):
             soup = BeautifulSoup(response.text, 'html.parser')
 
             # DEBUG
-            with open('content.html', 'wb') as file:
-                file.write(soup.prettify('utf-8'))
+            # with open('content.html', 'wb') as file:
+            #     file.write(soup.prettify('utf-8'))
 
             # Ensure we grab the correct card
             elements = soup.find_all('a', string=card)
