@@ -38,7 +38,6 @@ def get_f2f_prices(card_list, quality):
             print('Returned status code: %s' % response.status_code)
 
         # Append lowest price for card
-        print(card_prices)
         if len(card_prices) > 0:
             prices.append(min(card_prices))
         else:
