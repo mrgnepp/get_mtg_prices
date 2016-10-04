@@ -25,7 +25,7 @@ def get_f2f_prices(card_list, quality):
             #     file.write(soup.prettify('utf-8'))
 
             # Ensure we grab the correct card
-            elements = soup.find_all('a', string=card)
+            elements = soup.find_all('a', string=re.compile('^%s$' % card, re.I))
             for element in elements:
                 # Search for the quality
                 card_condition = element.parent.find_next('td', {'class':'variantInfo'}, string=f2f_quality[quality])
@@ -38,6 +38,7 @@ def get_f2f_prices(card_list, quality):
             print('Returned status code: %s' % response.status_code)
 
         # Append lowest price for card
+        print(card_prices)
         if len(card_prices) > 0:
             prices.append(min(card_prices))
         else:
