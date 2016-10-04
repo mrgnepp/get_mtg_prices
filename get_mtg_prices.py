@@ -81,7 +81,7 @@ def export_prices_to_csv(*args):
 
     for i, card in enumerate(card_list):
         # Can't actually use ',' as cards names can have commas
-        csv_string += card + ';' + str(f2f_prices[i]) + '\n'
+        csv_string += '%s;%s\n' % (card, str(f2f_prices[i]))
 
     try:
         with open(filename, 'w') as file:
