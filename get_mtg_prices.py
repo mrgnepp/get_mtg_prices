@@ -17,12 +17,12 @@ def get_f2f_prices(card_list, quality):
         response = requests.get(f2f_url, {f2f_url_arg:card})
 
         print('Searching... %s' % response.url) 
-        if response.status_code == 200:
+        if response.status_code == requests.codes.ok:
             soup = BeautifulSoup(response.text, 'html.parser')
 
             # DEBUG
-            with open('content.html', 'wb') as file:
-                file.write(soup.prettify('utf-8'))
+            # with open('content.html', 'wb') as file:
+            #     file.write(soup.prettify('utf-8'))
 
             # Search via quality
             elements = soup.find_all('td', {'class':'variantInfo'}, string=f2f_quality[quality])
