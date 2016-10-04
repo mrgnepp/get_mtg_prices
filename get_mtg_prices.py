@@ -21,17 +21,20 @@ def get_f2f_prices(card_list, quality):
             soup = BeautifulSoup(response.text, 'html.parser')
 
             # DEBUG
-            # with open('content.html', 'wb') as file:
-            #     file.write(soup.prettify('utf-8'))
+            with open('content.html', 'wb') as file:
+                file.write(soup.prettify('utf-8'))
 
-            # Search via quality
-            elements = soup.find_all('td', {'class':'variantInfo'}, string=f2f_quality[quality])
+            # Ensure we grab the correct card
+            elements = soup.find_all('a', string=card)
             for element in elements:
-                # Condition -> newline -> price
-                card_price = parse_price_from_string(element.next_sibling.next_sibling.string)
-                if card_price is not None:
-                    card_prices.append(card_price)
-
+                # Search for the quality
+                card_condition = element.parent.find_next('td', {'class':'variantInfo'}, string=f2f_quality[quality])
+                if card_condition is not None:
+                    # Navigate to Price from Quality: Condition -> newline -> price
+                    card_price = parse_price_from_string(card_condition.next_sibling.next_sibling.string)
+                    if card_price is not None:
+                        card_prices.append(card_price)
+            
         else:
             print('Returned status code: %s' % response.status_code)
 
