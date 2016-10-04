@@ -14,7 +14,7 @@ usage: get_mtg_prices.py [-h] [-q {NM,LP,MP,HP}] [-f] card_list_file
 
 positional arguments:
 ```
-  card_list_file        the file containing the list of cards
+  card_list_file        The file containing the list of cards separated by newlines
 ```
 optional arguments:
 ```

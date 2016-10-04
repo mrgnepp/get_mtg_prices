@@ -95,7 +95,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     # Required Args
-    parser.add_argument('card_list_file', help='the file containing the list of cards')
+    parser.add_argument('card_list_file', help='The file containing the list of cards separated by newlines')
 
     # Optional Args
     parser.add_argument('-q', '--quality', help='The quality of card to look for. Valid values are "NM", "LP", "MP", and "HP". Default is "NM"', choices=['NM', 'LP', 'MP', 'HP'], default='NM')
