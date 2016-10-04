@@ -1,11 +1,12 @@
 # get_mtg_prices
 Grabs prices for mtg cards from various sources on the web.
 
-Requires Python 3.5 and [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/#installing-beautiful-soup) to be installed:
 ```bash
+# Uses Python 3.5 and BeautifulSoup4
 # Using pip
-pip install beautifulsoup4
+pip install -r requirements.txt
 ```
+
 Using get_mtg_prices:
 ```bash
 python get_mtg_prices.py -h
