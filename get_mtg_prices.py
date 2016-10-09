@@ -27,8 +27,11 @@ def get_f2f_prices(card_list, quality):
             # Ensure we grab the correct card
             elements = soup.find_all('a', string=re.compile('^%s$' % card, re.I))
             for element in elements:
+                # Create new soup to restrict search for card
+                card_soup = BeautifulSoup(str(element.parent), 'html.parser')
+
                 # Search for the quality
-                card_condition = element.parent.find_next('td', {'class':'variantInfo'}, string=f2f_quality[quality])
+                card_condition = card_soup.find('td', {'class':'variantInfo'}, string=f2f_quality[quality])
                 if card_condition is not None:
                     # Navigate to Price from Quality: Condition -> newline -> price
                     card_price = parse_price_from_string(card_condition.next_sibling.next_sibling.string)
@@ -55,7 +58,7 @@ def get_fusion_prices(card_list):
 
 def parse_price_from_string(string):
     try:
-        return float(string.split()[1])
+        return float(string.split()[1].replace(',', ''))
     except:
         print('Unable to get price from "%s"' % string)
         return None
