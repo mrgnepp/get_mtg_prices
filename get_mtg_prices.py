@@ -102,7 +102,7 @@ class FusionGaming(CardSite):
 
     def get_card_price_element(self, element):
         price_soup = BeautifulSoup(str(element.parent.parent.next_sibling.next_sibling), 'html.parser')
-        return price_soup.find('span', class_='regular price').string
+        return price_soup.find('span', class_='regular price', string=True).string
 
 
 class FaceToFace(CardSite):
