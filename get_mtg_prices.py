@@ -21,7 +21,7 @@ class CardSite:
         self.sell_list_url = '/products/search?'
         self.buy_list_url = '/buylist/search?'
 
-    def get_prices(self, card_list, is_store_buying, quality):
+    def get_prices(self, card_list, quality, is_store_buying):
         if is_store_buying:
             self.url = self.base_url + self.buy_list_url
         else:
@@ -92,6 +92,7 @@ class FusionGaming(CardSite):
     def __init__(self):
         super().__init__()
 
+        self.name = 'Fusion'
         self.base_url = 'http://www.fusiongamingonline.com'
         self.url_arg = 'q'
         self.quality = {'NM':'NM-Mint, English, ', 'LP':'Light Play, English, ', 'MP':'Moderate Play, English, ', 'HP':'Heavy Play, English, '}
@@ -109,6 +110,7 @@ class FaceToFace(CardSite):
     def __init__(self):
         super().__init__()
 
+        self.name = 'FaceToFace'
         self.base_url = 'http://www.facetofacegames.com'
         self.url_arg = 'query'
         self.quality = {'NM':'Condition: NM-Mint, English', 'LP':'Condition: Slightly Played, English', 'MP':'Condition: Moderately Played, English', 'HP':'Condition: Heavily Played, English'}
@@ -132,15 +134,21 @@ def read_in_card_list(filename):
 
     return card_list.split('\n')
 
-def export_prices_to_csv(card_list, site):
+def export_prices_to_csv(card_list, sites, card_price_list):
     filename = 'prices.csv'
-    csv_string = ''
-    
-    print('Exporting prices to %s...' % filename)
+    csv_string = 'Card Name'
+
+    # Get headers for csv
+    for site in sites:
+        csv_string += ';%s Selling;%s Buying' % ( site, site )
+    csv_string += '\n'
 
     for i, card in enumerate(card_list):
-        # Can't actually use ',' as cards names can have commas
-        csv_string += '%s;%s;%s\n' % (card, str(site.selling_prices[i]), str(site.buying_prices[i]))
+        csv_string += '%s' % card
+        for prices in card_price_list:
+            # Can't actually use ',' as cards names can have commas
+            csv_string += ';%s' % str(prices[i])
+        csv_string += '\n'
 
     try:
         with open(filename, 'w') as file:
@@ -148,7 +156,7 @@ def export_prices_to_csv(card_list, site):
     except:
         print('Failed to write card prices to "%s"' % filename)
 
-    print('Export Complete!')
+    print('Export to "%s" complete!' % filename)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -169,17 +177,28 @@ if __name__ == '__main__':
     quality = args.quality
     foil = args.foil
 
+    card_price_list = []
+    site_list = []
+
     # Set locale to current locale
     locale.setlocale(locale.LC_ALL, '')
-    
+
+    print('Searching FaceToFace...')
     f2f = FaceToFace()
-    f2f.get_prices(card_list, False, quality)
-    f2f.get_prices(card_list, True, quality)
+    site_list.append(f2f.name)
+    f2f.get_prices(card_list, quality, False)
+    f2f.get_prices(card_list, quality, True)
 
-    export_prices_to_csv(card_list, f2f)
+    print('\nSearching Fusion Gaming...')
+    fusion = FusionGaming()
+    site_list.append(fusion.name)
+    fusion.get_prices(card_list, quality, False)
+    fusion.get_prices(card_list, quality, True)
 
-    # fusion = FusionGaming()
-    # fusion.get_prices(card_list, False, quality)
-    # fusion.get_prices(card_list, True, quality)
+    card_price_list.append(f2f.selling_prices)
+    card_price_list.append(f2f.buying_prices)
+    card_price_list.append(fusion.selling_prices)
+    card_price_list.append(fusion.buying_prices)
 
-    # export_prices_to_csv(card_list, fusion)
+    print('\nExporting prices to file...')
+    export_prices_to_csv(card_list, site_list, card_price_list)
