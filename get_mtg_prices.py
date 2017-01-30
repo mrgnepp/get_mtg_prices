@@ -121,7 +121,24 @@ class FaceToFace(CardSite):
 
     def get_card_price_element(self, element):
         return element.parent.next_sibling.next_sibling.string
-        
+
+
+class WizardTower(CardSite):
+    def __init__(self):
+        super().__init__()
+
+        self.name = 'Wizard Tower'
+        self.base_url = 'http://www.kanatacg.com'
+        self.url_arg = 'query'
+        self.quality = {'NM':'Condition: NM-Mint, English', 'LP':'Condition: Slightly Played, English', 'MP':'Condition: Moderately Played, English', 'HP':'Condition: Heavily Played, English'}
+        self.card_name_element = 'a'
+
+    def get_card_element(self, element):
+        return element.parent
+
+    def get_card_price_element(self, element):
+        return element.parent.next_sibling.next_sibling.string
+
 
 def read_in_card_list(filename):
     card_list = []
@@ -208,6 +225,16 @@ if __name__ == '__main__':
     if buylist:
         fusion.get_prices(card_list, quality, is_store_buying)
         card_price_list.append(fusion.buying_prices)
+
+    print('\nSearching Wizard Tower...')
+    wizard_tower = WizardTower()
+    site_list.append(wizard_tower.name)
+
+    wizard_tower.get_prices(card_list, quality, not is_store_buying)
+    card_price_list.append(wizard_tower.selling_prices)
+    if buylist:
+        wizard_tower.get_prices(card_list, quality, is_store_buying)
+        card_price_list.append(wizard_tower.buying_prices)
 
     print('\nExporting prices to file...')
     export_prices_to_csv(card_list, site_list, card_price_list)
