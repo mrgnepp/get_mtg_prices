@@ -10,7 +10,7 @@ Using get_mtg_prices:
 ```bash
 python get_mtg_prices.py -h
 ```
-usage: get_mtg_prices.py [-h] [-q {NM,LP,MP,HP}] [-f] card_list_file
+usage: get_mtg_prices.py [-h] [-f] [-q {NM,LP,MP,HP}] [-bl] card_list_file
 
 positional arguments:
 ```
@@ -19,11 +19,13 @@ positional arguments:
 optional arguments:
 ```
   -h, --help            show this help message and exit
+  -f, --foil            Use this flag if you're looking for foils. Default is
+                        to not look for foils
   -q {NM,LP,MP,HP}, --quality {NM,LP,MP,HP}
                         The quality of card to look for. Valid values are
                         "NM", "LP", "MP", and "HP". Default is "NM"
-  -f, --foil            Use this flag if you're looking for foils. Default is
-                        to not look for foils
+  -bl, --buylist        Use this flag if you want to see the buylist prices of
+                        the stores, in addition to their sell-list
 ```
 
 Example Usage:
