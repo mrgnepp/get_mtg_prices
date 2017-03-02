@@ -4,6 +4,7 @@ import abc
 import argparse
 import locale
 import re
+import time
 
 from bs4 import BeautifulSoup
 import requests
@@ -22,6 +23,8 @@ class CardSite:
         self.buy_list_url = '/buylist/search?'
 
     def get_prices(self, card_list, quality, is_store_buying):
+        begin_time = time.perf_counter()
+
         if is_store_buying:
             self.url = self.base_url + self.buy_list_url
         else:
@@ -71,6 +74,9 @@ class CardSite:
                     self.selling_prices.append(min(card_prices))
                 else:
                     self.selling_prices.append('')
+
+        elapsed_time = time.perf_counter() - begin_time
+        print(f"Elapsed time: {elapsed_time:3.2f} seconds")
 
     def get_card_element(self, element):
         raise NotImplementedError
