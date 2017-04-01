@@ -76,7 +76,7 @@ class CardSite:
                     self.selling_prices.append('')
 
         elapsed_time = time.perf_counter() - begin_time
-        print(f"Elapsed time: {elapsed_time:3.2f} seconds")
+        print(f"Elapsed time: {elapsed_time:3.2f} seconds\n")
 
     def get_card_element(self, element):
         raise NotImplementedError
@@ -197,50 +197,53 @@ def parse_args():
     return parser.parse_args()
 
 if __name__ == '__main__':
-    args = parse_args()
+    try:
+        args = parse_args()
 
-    card_list = read_in_card_list(args.card_list_file)
-    quality = args.quality
-    foil = args.foil
-    buylist = args.buylist
+        card_list = read_in_card_list(args.card_list_file)
+        quality = args.quality
+        foil = args.foil
+        buylist = args.buylist
 
-    card_price_list = []
-    site_list = []
+        card_price_list = []
+        site_list = []
 
-    # Set locale to current locale
-    locale.setlocale(locale.LC_ALL, '')
+        # Set locale to current locale
+        locale.setlocale(locale.LC_ALL, '')
 
-    is_store_buying = True
+        is_store_buying = True
 
-    print('Searching FaceToFace...')
-    f2f = FaceToFace()
-    site_list.append(f2f.name)
+        print('Searching FaceToFace...')
+        f2f = FaceToFace()
+        site_list.append(f2f.name)
 
-    f2f.get_prices(card_list, quality, not is_store_buying)
-    card_price_list.append(f2f.selling_prices)
-    if buylist:
-        f2f.get_prices(card_list, quality, is_store_buying)
-        card_price_list.append(f2f.buying_prices)
+        f2f.get_prices(card_list, quality, not is_store_buying)
+        card_price_list.append(f2f.selling_prices)
+        if buylist:
+            f2f.get_prices(card_list, quality, is_store_buying)
+            card_price_list.append(f2f.buying_prices)
 
-    print('\nSearching Fusion Gaming...')
-    fusion = FusionGaming()
-    site_list.append(fusion.name)
+        print('Searching Fusion Gaming...')
+        fusion = FusionGaming()
+        site_list.append(fusion.name)
 
-    fusion.get_prices(card_list, quality, not is_store_buying)
-    card_price_list.append(fusion.selling_prices)
-    if buylist:
-        fusion.get_prices(card_list, quality, is_store_buying)
-        card_price_list.append(fusion.buying_prices)
+        fusion.get_prices(card_list, quality, not is_store_buying)
+        card_price_list.append(fusion.selling_prices)
+        if buylist:
+            fusion.get_prices(card_list, quality, is_store_buying)
+            card_price_list.append(fusion.buying_prices)
 
-    print('\nSearching Wizard Tower...')
-    wizard_tower = WizardTower()
-    site_list.append(wizard_tower.name)
+        print('Searching Wizard Tower...')
+        wizard_tower = WizardTower()
+        site_list.append(wizard_tower.name)
 
-    wizard_tower.get_prices(card_list, quality, not is_store_buying)
-    card_price_list.append(wizard_tower.selling_prices)
-    if buylist:
-        wizard_tower.get_prices(card_list, quality, is_store_buying)
-        card_price_list.append(wizard_tower.buying_prices)
+        wizard_tower.get_prices(card_list, quality, not is_store_buying)
+        card_price_list.append(wizard_tower.selling_prices)
+        if buylist:
+            wizard_tower.get_prices(card_list, quality, is_store_buying)
+            card_price_list.append(wizard_tower.buying_prices)
 
-    print('\nExporting prices to file...')
-    export_prices_to_csv(card_list, site_list, card_price_list)
+        print('Exporting prices to file...')
+        export_prices_to_csv(card_list, site_list, card_price_list)
+    except KeyboardInterrupt:
+        exit(0)
