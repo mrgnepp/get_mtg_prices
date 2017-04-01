@@ -14,13 +14,16 @@ class CardSite:
     # Abstract class
     abc.__metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, foil):
         self.selling_prices = []
         self.buying_prices = []
 
         self.url = ''
         self.sell_list_url = '/products/search?'
         self.buy_list_url = '/buylist/search?'
+
+        self.foil = foil
+        self.foil_append = ' - Foil'
 
     def get_prices(self, card_list, quality, is_store_buying):
         begin_time = time.perf_counter()
@@ -32,6 +35,9 @@ class CardSite:
 
         for card in card_list:
             card_prices = []
+            if self.foil:
+                card = f'{card}{self.foil_append}'
+
             response = requests.get(self.url, {self.url_arg:card})
 
             print(f'Searching... {response.url}') 
@@ -95,8 +101,8 @@ class CardSite:
 
 
 class FusionGaming(CardSite):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, foil):
+        super().__init__(foil)
 
         self.name = 'Fusion'
         self.base_url = 'http://www.fusiongamingonline.com'
@@ -113,8 +119,8 @@ class FusionGaming(CardSite):
 
 
 class FaceToFace(CardSite):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, foil):
+        super().__init__(foil)
 
         self.name = 'FaceToFace'
         self.base_url = 'http://www.facetofacegames.com'
@@ -130,8 +136,8 @@ class FaceToFace(CardSite):
 
 
 class WizardTower(CardSite):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, foil):
+        super().__init__(foil)
 
         self.name = 'Wizard Tower'
         self.base_url = 'http://www.kanatacg.com'
@@ -214,7 +220,7 @@ if __name__ == '__main__':
         is_store_buying = True
 
         print('Searching FaceToFace...')
-        f2f = FaceToFace()
+        f2f = FaceToFace(foil)
         site_list.append(f2f.name)
 
         f2f.get_prices(card_list, quality, not is_store_buying)
@@ -224,7 +230,7 @@ if __name__ == '__main__':
             card_price_list.append(f2f.buying_prices)
 
         print('Searching Fusion Gaming...')
-        fusion = FusionGaming()
+        fusion = FusionGaming(foil)
         site_list.append(fusion.name)
 
         fusion.get_prices(card_list, quality, not is_store_buying)
@@ -234,7 +240,7 @@ if __name__ == '__main__':
             card_price_list.append(fusion.buying_prices)
 
         print('Searching Wizard Tower...')
-        wizard_tower = WizardTower()
+        wizard_tower = WizardTower(foil)
         site_list.append(wizard_tower.name)
 
         wizard_tower.get_prices(card_list, quality, not is_store_buying)
