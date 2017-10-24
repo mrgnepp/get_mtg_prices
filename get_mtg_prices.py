@@ -4,13 +4,16 @@ import abc
 import argparse
 import locale
 import re
+import threading
 import time
 
-from bs4 import BeautifulSoup
+from threading import Thread
+
 import requests
+from bs4 import BeautifulSoup
+
 
 class CardSite:
-
     # Abstract class
     abc.__metaclass__ = abc.ABCMeta
 
@@ -38,9 +41,9 @@ class CardSite:
             if self.foil:
                 card = f'{card}{self.foil_append}'
 
-            response = requests.get(self.url, {self.url_arg:card})
+            response = requests.get(url=self.url, params={self.url_arg: card})
 
-            print(f'Searching... {response.url}') 
+            print(f'Searching... {response.url}')
             if response.status_code == requests.codes.ok:
                 soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -53,7 +56,7 @@ class CardSite:
                 for element in elements:
                     # Create new soup to restrict search for card
                     card_soup = BeautifulSoup(str(self.get_card_element(element)), 'html.parser')
-                    
+
                     # DEBUG
                     # with open('card_soup.html', 'wb') as file:
                     #     file.write(card_soup.prettify('utf-8'))
@@ -81,8 +84,8 @@ class CardSite:
                 else:
                     self.selling_prices.append('')
 
-        elapsed_time = time.perf_counter() - begin_time
-        print(f"Elapsed time: {elapsed_time:3.2f} seconds\n")
+        total_time = time.perf_counter() - begin_time
+        print(f"{threading.current_thread().getName()} - total time: {total_time:3.2f} seconds\n")
 
     def get_card_element(self, element):
         raise NotImplementedError
@@ -96,7 +99,7 @@ class CardSite:
                 return locale.atof(string.split()[1])
         except:
             print(f'Unable to get price from "{string.encode("utf-8")}"')
-        
+
         return None
 
 
@@ -107,7 +110,8 @@ class FusionGaming(CardSite):
         self.name = 'Fusion'
         self.base_url = 'http://www.fusiongamingonline.com'
         self.url_arg = 'q'
-        self.quality = {'NM':'NM-Mint, English, ', 'LP':'Light Play, English, ', 'MP':'Moderate Play, English, ', 'HP':'Heavy Play, English, '}
+        self.quality = {'NM': 'NM-Mint, English, ', 'LP': 'Light Play, English, ',
+                        'MP': 'Moderate Play, English, ', 'HP': 'Heavy Play, English, '}
         self.card_name_element = 'h4'
 
     def get_card_element(self, element):
@@ -125,7 +129,8 @@ class FaceToFace(CardSite):
         self.name = 'FaceToFace'
         self.base_url = 'http://www.facetofacegames.com'
         self.url_arg = 'query'
-        self.quality = {'NM':'Condition: NM-Mint, English', 'LP':'Condition: Slightly Played, English', 'MP':'Condition: Moderately Played, English', 'HP':'Condition: Heavily Played, English'}
+        self.quality = {'NM': 'Condition: NM-Mint, English', 'LP': 'Condition: Slightly Played, English',
+                        'MP': 'Condition: Moderately Played, English', 'HP': 'Condition: Heavily Played, English'}
         self.card_name_element = 'a'
 
     def get_card_element(self, element):
@@ -142,7 +147,8 @@ class WizardTower(CardSite):
         self.name = 'Wizard Tower'
         self.base_url = 'http://www.kanatacg.com'
         self.url_arg = 'query'
-        self.quality = {'NM':'Condition: NM-Mint, English', 'LP':'Condition: Slightly Played, English', 'MP':'Condition: Moderately Played, English', 'HP':'Condition: Heavily Played, English'}
+        self.quality = {'NM': 'Condition: NM-Mint, English', 'LP': 'Condition: Slightly Played, English',
+                        'MP': 'Condition: Moderately Played, English', 'HP': 'Condition: Heavily Played, English'}
         self.card_name_element = 'a'
 
     def get_card_element(self, element):
@@ -162,6 +168,7 @@ def read_in_card_list(filename):
         print(f'Failed to read list of cards from "{filename}"')
 
     return card_list.split('\n')
+
 
 def export_prices_to_csv(card_list, sites, card_price_list):
     filename = 'prices.csv'
@@ -189,6 +196,7 @@ def export_prices_to_csv(card_list, sites, card_price_list):
 
     print(f'Export to "{filename}" complete!')
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -196,11 +204,18 @@ def parse_args():
     parser.add_argument('card_list_file', help='The file containing the list of cards separated by newlines')
 
     # Optional Args
-    parser.add_argument('-f', '--foil', help='Use this flag if you\'re looking for foils. Default is to not look for foils', action='store_true')
-    parser.add_argument('-q', '--quality', help='The quality of card to look for. Valid values are "NM", "LP", "MP", and "HP". Default is "NM"', choices=['NM', 'LP', 'MP', 'HP'], default='NM')
-    parser.add_argument('-bl', '--buylist', help='Use this flag if you want to see the buylist prices of the stores, in addition to their sell-list', action='store_true')
+    parser.add_argument('-f', '--foil',
+                        help='Use this flag if you\'re looking for foils. Default is to not look for foils',
+                        action='store_true')
+    parser.add_argument('-q', '--quality',
+                        help='The quality of card to look for. Valid values are "NM", "LP", "MP", and "HP". Default is "NM"',
+                        choices=['NM', 'LP', 'MP', 'HP'], default='NM')
+    parser.add_argument('-bl', '--buylist',
+                        help='Use this flag if you want to see the buylist prices of the stores, in addition to their sell-list',
+                        action='store_true')
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     try:
@@ -209,7 +224,7 @@ if __name__ == '__main__':
         card_list = read_in_card_list(args.card_list_file)
         quality = args.quality
         foil = args.foil
-        buylist = args.buylist
+        buy_list = args.buylist
 
         card_price_list = []
         site_list = []
@@ -219,34 +234,45 @@ if __name__ == '__main__':
 
         is_store_buying = True
 
-        print('Searching FaceToFace...')
         f2f = FaceToFace(foil)
-        site_list.append(f2f.name)
-
-        f2f.get_prices(card_list, quality, not is_store_buying)
-        card_price_list.append(f2f.selling_prices)
-        if buylist:
-            f2f.get_prices(card_list, quality, is_store_buying)
-            card_price_list.append(f2f.buying_prices)
-
-        print('Searching Fusion Gaming...')
         fusion = FusionGaming(foil)
-        site_list.append(fusion.name)
-
-        fusion.get_prices(card_list, quality, not is_store_buying)
-        card_price_list.append(fusion.selling_prices)
-        if buylist:
-            fusion.get_prices(card_list, quality, is_store_buying)
-            card_price_list.append(fusion.buying_prices)
-
-        print('Searching Wizard Tower...')
         wizard_tower = WizardTower(foil)
+
+        site_list.append(f2f.name)
+        site_list.append(fusion.name)
         site_list.append(wizard_tower.name)
 
-        wizard_tower.get_prices(card_list, quality, not is_store_buying)
+        thread_list = [
+            Thread(target=f2f.get_prices, args=(card_list, quality, not is_store_buying,), name=f2f.name),
+            Thread(target=fusion.get_prices, args=(card_list, quality, not is_store_buying,), name=fusion.name),
+            Thread(target=wizard_tower.get_prices, args=(card_list, quality, not is_store_buying,), name=wizard_tower.name),
+        ]
+
+        for thread in thread_list:
+            thread.start()
+
+        for thread in thread_list:
+            thread.join()
+
+        if buy_list:
+            thread_list = [
+                Thread(target=f2f.get_prices, args=(card_list, quality, is_store_buying,), name=f2f.name + ' buylist'),
+                Thread(target=fusion.get_prices, args=(card_list, quality, is_store_buying,), name=fusion.name + ' buylist'),
+                Thread(target=wizard_tower.get_prices, args=(card_list, quality, is_store_buying,), name=wizard_tower.name + ' buylist'),
+            ]
+
+            for thread in thread_list:
+                thread.start()
+
+            for thread in thread_list:
+                thread.join()
+
+        card_price_list.append(f2f.selling_prices)
+        card_price_list.append(fusion.selling_prices)
         card_price_list.append(wizard_tower.selling_prices)
-        if buylist:
-            wizard_tower.get_prices(card_list, quality, is_store_buying)
+        if buy_list:
+            card_price_list.append(f2f.buying_prices)
+            card_price_list.append(fusion.buying_prices)
             card_price_list.append(wizard_tower.buying_prices)
 
         print('Exporting prices to file...')
