@@ -7,8 +7,6 @@ import re
 import threading
 import time
 
-from threading import Thread
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -243,9 +241,9 @@ if __name__ == '__main__':
         site_list.append(wizard_tower.name)
 
         thread_list = [
-            Thread(target=f2f.get_prices, args=(card_list, quality, not is_store_buying,), name=f2f.name),
-            Thread(target=fusion.get_prices, args=(card_list, quality, not is_store_buying,), name=fusion.name),
-            Thread(target=wizard_tower.get_prices, args=(card_list, quality, not is_store_buying,), name=wizard_tower.name),
+            threading.Thread(target=f2f.get_prices, args=(card_list, quality, not is_store_buying,), name=f2f.name),
+            threading.Thread(target=fusion.get_prices, args=(card_list, quality, not is_store_buying,), name=fusion.name),
+            threading.Thread(target=wizard_tower.get_prices, args=(card_list, quality, not is_store_buying,), name=wizard_tower.name),
         ]
 
         for thread in thread_list:
@@ -256,9 +254,9 @@ if __name__ == '__main__':
 
         if buy_list:
             thread_list = [
-                Thread(target=f2f.get_prices, args=(card_list, quality, is_store_buying,), name=f2f.name + ' buylist'),
-                Thread(target=fusion.get_prices, args=(card_list, quality, is_store_buying,), name=fusion.name + ' buylist'),
-                Thread(target=wizard_tower.get_prices, args=(card_list, quality, is_store_buying,), name=wizard_tower.name + ' buylist'),
+                threading.Thread(target=f2f.get_prices, args=(card_list, quality, is_store_buying,), name=f2f.name + ' buylist'),
+                threading.Thread(target=fusion.get_prices, args=(card_list, quality, is_store_buying,), name=fusion.name + ' buylist'),
+                threading.Thread(target=wizard_tower.get_prices, args=(card_list, quality, is_store_buying,), name=wizard_tower.name + ' buylist'),
             ]
 
             for thread in thread_list:
