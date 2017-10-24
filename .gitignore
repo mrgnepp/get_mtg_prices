@@ -1,3 +1,5 @@
+cards.txt
 *.csv
 *.html
-cards.txt
+.idea
+.vscode
