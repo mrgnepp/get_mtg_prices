@@ -15,9 +15,8 @@ class CardSite:
     # Abstract class
     abc.__metaclass__ = abc.ABCMeta
 
-    def __init__(self, foil):
-        self.selling_prices = []
-        self.buying_prices = []
+    def __init__(self, foil, is_store_buying):
+        self.prices = []
 
         self.url = ''
         self.sell_list_url = '/products/search?'
@@ -26,13 +25,10 @@ class CardSite:
         self.foil = foil
         self.foil_append = ' - Foil'
 
-    def get_prices(self, card_list, quality, is_store_buying):
-        begin_time = time.perf_counter()
+        self.is_store_buying = is_store_buying
 
-        if is_store_buying:
-            self.url = self.base_url + self.buy_list_url
-        else:
-            self.url = self.base_url + self.sell_list_url
+    def get_prices(self, card_list, quality):
+        begin_time = time.perf_counter()
 
         for card in card_list:
             card_prices = []
@@ -69,41 +65,40 @@ class CardSite:
             else:
                 print(f'Returned status code: {response.status_code}')
 
-            if is_store_buying:
+            if self.is_store_buying and len(card_prices) > 0:
                 # Append highest price for card
-                if len(card_prices) > 0:
-                    self.buying_prices.append(max(card_prices))
-                else:
-                    self.buying_prices.append('')
-            else:
+                self.prices.append(max(card_prices))
+            elif len(card_prices) > 0:
                 # Append lowest price for card
-                if len(card_prices) > 0:
-                    self.selling_prices.append(min(card_prices))
-                else:
-                    self.selling_prices.append('')
+                self.prices.append(min(card_prices))
+            else:
+                self.prices.append('')
 
         total_time = time.perf_counter() - begin_time
         print(f"{threading.current_thread().getName()} - total time: {total_time:3.2f} seconds\n")
 
-    def get_card_element(self, element):
+    @staticmethod
+    def get_card_element(element):
         raise NotImplementedError
 
-    def get_card_price_element(self, element):
+    @staticmethod
+    def get_card_price_element(element):
         raise NotImplementedError
 
-    def parse_price_from_string(self, string):
-        try:
-            if string is not None:
+    @staticmethod
+    def parse_price_from_string(string):
+        if string:
+            try:
                 return locale.atof(string.split()[1])
-        except:
-            print(f'Unable to get price from "{string.encode("utf-8")}"')
+            except ValueError:
+                print(f'Unable to get price from "{string.encode("utf-8")}"')
 
         return None
 
 
 class FusionGaming(CardSite):
-    def __init__(self, foil):
-        super().__init__(foil)
+    def __init__(self, foil, is_store_buying):
+        super().__init__(foil, is_store_buying)
 
         self.name = 'Fusion'
         self.base_url = 'http://www.fusiongamingonline.com'
@@ -112,35 +107,49 @@ class FusionGaming(CardSite):
                         'MP': 'Moderate Play, English, ', 'HP': 'Heavy Play, English, '}
         self.card_name_element = 'h4'
 
-    def get_card_element(self, element):
+        if self.is_store_buying:
+            self.url = self.base_url + self.buy_list_url
+        else:
+            self.url = self.base_url + self.sell_list_url
+
+    @staticmethod
+    def get_card_element(element):
         return element.parent.parent.parent.parent
 
-    def get_card_price_element(self, element):
+    @staticmethod
+    def get_card_price_element(element):
         price_soup = BeautifulSoup(str(element.parent.parent.next_sibling.next_sibling), 'html.parser')
         return price_soup.find('span', class_='regular price', string=True).string
 
 
 class FaceToFace(CardSite):
-    def __init__(self, foil):
-        super().__init__(foil)
+    def __init__(self, foil, is_store_buying):
+        super().__init__(foil, is_store_buying)
 
         self.name = 'FaceToFace'
         self.base_url = 'http://www.facetofacegames.com'
         self.url_arg = 'query'
-        self.quality = {'NM': 'Condition: NM-Mint, English', 'LP': 'Condition: Slightly Played, English',
-                        'MP': 'Condition: Moderately Played, English', 'HP': 'Condition: Heavily Played, English'}
+        self.quality = {'NM': 'NM-Mint, English', 'LP': 'Slightly Played, English',
+                        'MP': 'Moderately Played, English', 'HP': 'Heavily Played, English'}
         self.card_name_element = 'a'
 
-    def get_card_element(self, element):
+        if self.is_store_buying:
+            self.url = self.base_url + self.buy_list_url
+        else:
+            self.url = self.base_url + self.sell_list_url
+
+    @staticmethod
+    def get_card_element(element):
         return element.parent
 
-    def get_card_price_element(self, element):
+    @staticmethod
+    def get_card_price_element(element):
         return element.parent.next_sibling.next_sibling.string
 
 
 class WizardTower(CardSite):
-    def __init__(self, foil):
-        super().__init__(foil)
+    def __init__(self, foil, is_store_buying):
+        super().__init__(foil, is_store_buying)
 
         self.name = 'Wizard Tower'
         self.base_url = 'http://www.kanatacg.com'
@@ -149,10 +158,17 @@ class WizardTower(CardSite):
                         'MP': 'Condition: Moderately Played, English', 'HP': 'Condition: Heavily Played, English'}
         self.card_name_element = 'a'
 
-    def get_card_element(self, element):
+        if self.is_store_buying:
+            self.url = self.base_url + self.buy_list_url
+        else:
+            self.url = self.base_url + self.sell_list_url
+
+    @staticmethod
+    def get_card_element(element):
         return element.parent
 
-    def get_card_price_element(self, element):
+    @staticmethod
+    def get_card_price_element(element):
         return element.parent.next_sibling.next_sibling.string
 
 
@@ -232,19 +248,32 @@ if __name__ == '__main__':
 
         is_store_buying = True
 
-        f2f = FaceToFace(foil)
-        fusion = FusionGaming(foil)
-        wizard_tower = WizardTower(foil)
+        f2f = FaceToFace(foil, not is_store_buying)
+        fusion = FusionGaming(foil, not is_store_buying)
+        wizard_tower = WizardTower(foil, not is_store_buying)
 
         site_list.append(f2f.name)
         site_list.append(fusion.name)
         site_list.append(wizard_tower.name)
 
         thread_list = [
-            threading.Thread(target=f2f.get_prices, args=(card_list, quality, not is_store_buying,), name=f2f.name),
-            threading.Thread(target=fusion.get_prices, args=(card_list, quality, not is_store_buying,), name=fusion.name),
-            threading.Thread(target=wizard_tower.get_prices, args=(card_list, quality, not is_store_buying,), name=wizard_tower.name),
+            threading.Thread(target=f2f.get_prices, args=(card_list, quality,), name=f2f.name),
+            threading.Thread(target=fusion.get_prices, args=(card_list, quality,), name=fusion.name),
+            threading.Thread(target=wizard_tower.get_prices, args=(card_list, quality,), name=wizard_tower.name),
         ]
+
+        if buy_list:
+            f2f_buy = FaceToFace(foil, is_store_buying)
+            fusion_buy = FusionGaming(foil, is_store_buying)
+            wizard_tower_buy = WizardTower(foil, is_store_buying)
+
+            thread_list.extend([
+                threading.Thread(target=f2f_buy.get_prices, args=(card_list, quality,), name=f2f.name + ' buylist'),
+                threading.Thread(target=fusion_buy.get_prices, args=(card_list, quality,),
+                                 name=fusion.name + ' buylist'),
+                threading.Thread(target=wizard_tower_buy.get_prices, args=(card_list, quality,),
+                                 name=wizard_tower.name + ' buylist'),
+            ])
 
         for thread in thread_list:
             thread.start()
@@ -252,26 +281,13 @@ if __name__ == '__main__':
         for thread in thread_list:
             thread.join()
 
+        card_price_list.append(f2f.prices)
+        card_price_list.append(fusion.prices)
+        card_price_list.append(wizard_tower.prices)
         if buy_list:
-            thread_list = [
-                threading.Thread(target=f2f.get_prices, args=(card_list, quality, is_store_buying,), name=f2f.name + ' buylist'),
-                threading.Thread(target=fusion.get_prices, args=(card_list, quality, is_store_buying,), name=fusion.name + ' buylist'),
-                threading.Thread(target=wizard_tower.get_prices, args=(card_list, quality, is_store_buying,), name=wizard_tower.name + ' buylist'),
-            ]
-
-            for thread in thread_list:
-                thread.start()
-
-            for thread in thread_list:
-                thread.join()
-
-        card_price_list.append(f2f.selling_prices)
-        card_price_list.append(fusion.selling_prices)
-        card_price_list.append(wizard_tower.selling_prices)
-        if buy_list:
-            card_price_list.append(f2f.buying_prices)
-            card_price_list.append(fusion.buying_prices)
-            card_price_list.append(wizard_tower.buying_prices)
+            card_price_list.append(f2f_buy.prices)
+            card_price_list.append(fusion_buy.prices)
+            card_price_list.append(wizard_tower_buy.prices)
 
         print('Exporting prices to file...')
         export_prices_to_csv(card_list, site_list, card_price_list)
