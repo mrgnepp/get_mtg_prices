@@ -175,13 +175,13 @@ class WizardTower(CardSite):
 def read_in_card_list(filename):
     card_list = []
 
-    try:
-        with open(filename, 'r') as file:
-            card_list = file.read()
-    except:
-        print(f'Failed to read list of cards from "{filename}"')
+    with open(filename, 'r') as file:
+        for line in file:
+            line = line.strip()
+            if line:
+                card_list.append(line)
 
-    return card_list.split('\n')
+    return card_list
 
 
 def export_prices_to_csv(card_list, sites, card_price_list):
