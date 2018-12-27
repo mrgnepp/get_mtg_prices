@@ -50,7 +50,7 @@ class CardSite:
                 soup = BeautifulSoup(response.text, 'html.parser')
 
                 if DEBUG_MODE:
-                    with open(f'debug/results_soup-{self.name}-{card}.html', 'wb') as file:
+                    with open(f'{DEBUG_FOLDER}/results_soup-{self.name}-{card}.html', 'wb') as file:
                         file.write(soup.prettify('utf-8'))
 
                 # Ensure we grab the correct card
@@ -60,7 +60,7 @@ class CardSite:
                     card_soup = BeautifulSoup(str(self.get_card_element(element)), 'html.parser')
 
                     if DEBUG_MODE:
-                        with open(f'debug/card_soup-{self.name}-{card}.html', 'wb') as file:
+                        with open(f'{DEBUG_FOLDER}/card_soup-{self.name}-{card}.html', 'wb') as file:
                             file.write(card_soup.prettify('utf-8'))
 
                     # Search for the quality
@@ -219,16 +219,26 @@ def export_prices_to_csv(card_list, sites, card_price_list):
     print(f'Export to "{filename}" complete!')
 
 
-def reinitialize_folders():
+def delete_folders():
     """
-    # Clean-up and create output folders
+    # Clean-up output folders
+    :return:
+    """
+    for folder in (OUTPUT_FOLDER, DEBUG_FOLDER):
+        with suppress(OSError):
+            shutil.rmtree(folder)
+
+
+def create_folders():
+    """
+    # Create output folders
     :return:
     """
     with suppress(OSError):
-        shutil.rmtree(OUTPUT_FOLDER)
-        shutil.rmtree(DEBUG_FOLDER)
         os.mkdir(OUTPUT_FOLDER)
-        if DEBUG_MODE:
+
+    if DEBUG_MODE:
+        with suppress(OSError):
             os.mkdir(DEBUG_FOLDER)
 
 
@@ -253,6 +263,7 @@ def parse_args():
 
 if __name__ == '__main__':
     try:
+        delete_folders()
         args = parse_args()
 
         card_list = read_in_card_list(args.card_list_file)
@@ -261,7 +272,7 @@ if __name__ == '__main__':
         buy_list = args.buylist
         DEBUG_MODE = args.debug
 
-        reinitialize_folders()
+        create_folders()
 
         card_price_list = []
         site_list = []
