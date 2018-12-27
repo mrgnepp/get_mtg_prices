@@ -111,8 +111,12 @@ class FusionGaming(CardSite):
         self.name = 'Fusion'
         self.base_url = 'http://www.fusiongamingonline.com'
         self.url_arg = 'q'
-        self.quality = {'NM': 'NM-Mint, English, ', 'LP': 'Light Play, English, ',
-                        'MP': 'Moderate Play, English, ', 'HP': 'Heavy Play, English, '}
+        self.quality = {
+            'NM': 'NM-Mint, English, ',
+            'LP': 'Light Play, English, ',
+            'MP': 'Moderate Play, English, ',
+            'HP': 'Heavy Play, English, ',
+        }
         self.card_name_element = 'h4'
 
         if self.is_store_buying:
@@ -137,8 +141,12 @@ class FaceToFace(CardSite):
         self.name = 'FaceToFace'
         self.base_url = 'http://www.facetofacegames.com'
         self.url_arg = 'query'
-        self.quality = {'NM': 'NM-Mint, English', 'LP': 'Slightly Played, English',
-                        'MP': 'Moderately Played, English', 'HP': 'Heavily Played, English'}
+        self.quality = {
+            'NM': 'NM-Mint, English',
+            'LP': 'Slightly Played, English',
+            'MP': 'Moderately Played, English',
+            'HP': 'Heavily Played, English',
+        }
         self.card_name_element = 'a'
 
         if self.is_store_buying:
@@ -152,7 +160,14 @@ class FaceToFace(CardSite):
 
     @staticmethod
     def get_card_price_element(element):
-        return element.parent.next_sibling.next_sibling.string
+        price = element.parent.next_sibling.next_sibling.string
+        if price:
+            return price
+        return FaceToFace.get_card_price_sale_element(element)
+
+    @staticmethod
+    def get_card_price_sale_element(element):
+        return next(element.parent.next_sibling.next_sibling.children)
 
 
 class WizardTower(CardSite):
@@ -162,8 +177,12 @@ class WizardTower(CardSite):
         self.name = 'Wizard Tower'
         self.base_url = 'http://www.kanatacg.com'
         self.url_arg = 'query'
-        self.quality = {'NM': 'Condition: NM-Mint, English', 'LP': 'Condition: Slightly Played, English',
-                        'MP': 'Condition: Moderately Played, English', 'HP': 'Condition: Heavily Played, English'}
+        self.quality = {
+            'NM': 'Condition: NM-Mint, English',
+            'LP': 'Condition: Slightly Played, English',
+            'MP': 'Condition: Moderately Played, English',
+            'HP': 'Condition: Heavily Played, English',
+        }
         self.card_name_element = 'a'
 
         if self.is_store_buying:
@@ -243,6 +262,10 @@ def create_folders():
 
 
 def parse_args():
+    """
+    Parses arguments from the command-line
+    :return: parsed args
+    """
     parser = argparse.ArgumentParser()
 
     # Required Args
@@ -263,7 +286,6 @@ def parse_args():
 
 if __name__ == '__main__':
     try:
-        delete_folders()
         args = parse_args()
 
         card_list = read_in_card_list(args.card_list_file)
@@ -272,6 +294,7 @@ if __name__ == '__main__':
         buy_list = args.buylist
         DEBUG_MODE = args.debug
 
+        delete_folders()
         create_folders()
 
         card_price_list = []
