@@ -3,12 +3,20 @@
 import abc
 import argparse
 import locale
+import os
 import re
+import shutil
 import threading
 import time
 
+from contextlib import suppress
+
 import requests
 from bs4 import BeautifulSoup
+
+DEBUG_MODE = False
+DEBUG_FOLDER = 'debug'
+OUTPUT_FOLDER = 'output'
 
 
 class CardSite:
@@ -41,9 +49,9 @@ class CardSite:
             if response.status_code == requests.codes.ok:
                 soup = BeautifulSoup(response.text, 'html.parser')
 
-                # DEBUG
-                # with open('soup.html', 'wb') as file:
-                #     file.write(soup.prettify('utf-8'))
+                if DEBUG_MODE:
+                    with open(f'debug/results_soup-{self.name}-{card}.html', 'wb') as file:
+                        file.write(soup.prettify('utf-8'))
 
                 # Ensure we grab the correct card
                 elements = soup.find_all(self.card_name_element, string=re.compile(f'^{card}$', re.I))
@@ -51,9 +59,9 @@ class CardSite:
                     # Create new soup to restrict search for card
                     card_soup = BeautifulSoup(str(self.get_card_element(element)), 'html.parser')
 
-                    # DEBUG
-                    # with open('card_soup.html', 'wb') as file:
-                    #     file.write(card_soup.prettify('utf-8'))
+                    if DEBUG_MODE:
+                        with open(f'debug/card_soup-{self.name}-{card}.html', 'wb') as file:
+                            file.write(card_soup.prettify('utf-8'))
 
                     # Search for the quality
                     card_condition = card_soup.find(string=re.compile(f'^{self.quality[quality]}'))
@@ -185,7 +193,7 @@ def read_in_card_list(filename):
 
 
 def export_prices_to_csv(card_list, sites, card_price_list):
-    filename = 'prices.csv'
+    filename = f'{OUTPUT_FOLDER}/prices.csv'
     csv_string = 'Card Name'
 
     # Get headers for csv
@@ -211,6 +219,19 @@ def export_prices_to_csv(card_list, sites, card_price_list):
     print(f'Export to "{filename}" complete!')
 
 
+def reinitialize_folders():
+    """
+    # Clean-up and create output folders
+    :return:
+    """
+    with suppress(OSError):
+        shutil.rmtree(OUTPUT_FOLDER)
+        shutil.rmtree(DEBUG_FOLDER)
+        os.mkdir(OUTPUT_FOLDER)
+        if DEBUG_MODE:
+            os.mkdir(DEBUG_FOLDER)
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -218,15 +239,14 @@ def parse_args():
     parser.add_argument('card_list_file', help='The file containing the list of cards separated by newlines')
 
     # Optional Args
-    parser.add_argument('-f', '--foil',
-                        help='Use this flag if you\'re looking for foils. Default is to not look for foils',
-                        action='store_true')
+    parser.add_argument('-f', '--foil', action='store_true',
+                        help="Use this flag if you're looking for foils.")
     parser.add_argument('-q', '--quality',
                         help='The quality of card to look for. Valid values are "NM", "LP", "MP", and "HP". Default is "NM"',
                         choices=['NM', 'LP', 'MP', 'HP'], default='NM')
-    parser.add_argument('-bl', '--buylist',
-                        help='Use this flag if you want to see the buylist prices of the stores, in addition to their sell-list',
-                        action='store_true')
+    parser.add_argument('-bl', '--buylist', action='store_true',
+                        help='Use this flag if you want to see the buylist prices of the stores, in addition to their sell-list')
+    parser.add_argument('-db', '--debug', action='store_true', help='Turns on debug mode. Saves html pages to disk.')
 
     return parser.parse_args()
 
@@ -239,6 +259,9 @@ if __name__ == '__main__':
         quality = args.quality
         foil = args.foil
         buy_list = args.buylist
+        DEBUG_MODE = args.debug
+
+        reinitialize_folders()
 
         card_price_list = []
         site_list = []
@@ -247,7 +270,7 @@ if __name__ == '__main__':
         locale.setlocale(locale.LC_ALL, '')
 
         is_store_buying = True
-
+        # Initialize sites
         f2f = FaceToFace(foil, not is_store_buying)
         fusion = FusionGaming(foil, not is_store_buying)
         wizard_tower = WizardTower(foil, not is_store_buying)
